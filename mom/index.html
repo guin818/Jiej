@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>엄마 사랑해요❤️</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent; 
+            
+            /* 텍스트 드래그 및 복사 완전 차단 */
+            -webkit-user-select: none;  /* 사파리/크롬 모바일 */
+            -moz-user-select: none;     /* 파이어폭스 */
+            -ms-user-select: none;      /* 익스플로러 */
+            user-select: none;          /* 표준 표준 */
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: fixed; 
+            
+            /* 모바일 드래그로 인한 화면 새로고침 및 스크롤 바운스 방지 */
+            overscroll-behavior: none; 
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #ffeef8, #ffdde1);
+            font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+            width: 100%;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            color: #ff4b72;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08);
+            animation: heartbeat 1.5s infinite ease-in-out;
+            word-break: keep-all;
+        }
+
+        p {
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
+            color: #555;
+            line-height: 1.7;
+            word-break: keep-all;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.06); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.06); }
+            70% { transform: scale(1); }
+        }
+
+        .heart {
+            position: absolute;
+            bottom: -50px;
+            color: #ff7693;
+            pointer-events: none;
+            will-change: transform, opacity;
+            animation: floatUp 4.5s linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.8;
+            }
+            85% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-110vh) scale(1.3) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>엄마 사랑해요❤️</h1>
+        <p>세상에서 가장 소중한 우리 엄마,<br>언제나 고맙고 사랑해요!</p>
+    </div>
+
+    <script>
+        // 모바일 롱프레스(길게 누르기) 컨텍스트 메뉴 팝업 차단
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            
+            const heartIcons = ['❤️', '💖', '💗', '💕', '🥰'];
+            heart.innerText = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+            
+            heart.style.left = Math.random() * 90 + 5 + 'vw';
+            heart.style.animationDuration = Math.random() * 2 + 3.5 + 's';
+            heart.style.fontSize = Math.random() * 15 + 20 + 'px'; 
+            
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 5500);
+        }
+
+        setInterval(createHeart, 800);
+        
+        for(let i = 0; i < 4; i++) {
+            setTimeout(createHeart, i * 200);
+        }
+
+        // 터치 시 하트 생성
+        document.body.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0]; // 첫 번째 터치 포인트 고정
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerText = '❤️';
+            heart.style.left = (touch.clientX - 15) + 'px';
+            heart.style.bottom = 'initial';
+            heart.style.top = (touch.clientY - 15) + 'px';
+            heart.style.animationName = 'none';
+            heart.style.opacity = '1';
+            heart.style.transition = 'all 0.8s ease-out';
+            
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.style.transform = `translateY(-80px) scale(2)`;
+                heart.style.opacity = '0';
+            }, 10);
+            
+            setTimeout(() => heart.remove(), 800);
+        });
+    </script>
+</body>
+</html>
