@@ -1,492 +1,236 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>숫자 맞히기</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
-<style>
-:root {
-  /* Layout: one narrow column. A dark scoreboard readout on top, the live range bar under it, then the input and a rail of seven try slots. */
-  --bg: #E8EDEF;
-  --surface: #F7FAFB;
-  --ink: #11222A;
-  --muted: #566B73;
-  --line: #C5D1D5;
-  --up: #C2410C;
-  --down: #1D5FB8;
-  --win: #18794A;
-  --win-ink: #FFFFFF;
-  --btn: #12252C;
-  --btn-ink: #F2F8F9;
-  --focus: #1D5FB8;
-  --panel: #12252C;
-  --panel-line: #12252C;
-  --panel-ink: #E8F1F3;
-  --panel-muted: #8FA9B1;
-  --p-up: #FF9A5C;
-  --p-down: #7DB1FF;
-  --p-win: #5ED69C;
-  --font-display: 'Do Hyeon', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0D171B;
-    --surface: #14232A;
-    --ink: #E5EEF0;
-    --muted: #8CA2AA;
-    --line: #2A3F46;
-    --up: #FF9A5C;
-    --down: #7DB1FF;
-    --win: #5ED69C;
-    --win-ink: #06251A;
-    --btn: #E5EEF0;
-    --btn-ink: #0D171B;
-    --focus: #7DB1FF;
-    --panel: #1B323B;
-    --panel-line: #2E4953;
-    --panel-muted: #9DB5BC;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0D171B;
-  --surface: #14232A;
-  --ink: #E5EEF0;
-  --muted: #8CA2AA;
-  --line: #2A3F46;
-  --up: #FF9A5C;
-  --down: #7DB1FF;
-  --win: #5ED69C;
-  --win-ink: #06251A;
-  --btn: #E5EEF0;
-  --btn-ink: #0D171B;
-  --focus: #7DB1FF;
-  --panel: #1B323B;
-  --panel-line: #2E4953;
-  --panel-muted: #9DB5BC;
-  color-scheme: dark;
-}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>반응형 숫자 맞히기 게임</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f1f3f5;
+            overscroll-behavior-y: none; 
+        }
 
-* { box-sizing: border-box; }
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.55;
-  padding-block: 28px 40px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
-.app {
-  max-width: 460px;
-  margin-inline: auto;
-  display: grid;
-  gap: 22px;
-}
+        /* 반응형 뷰포트 레이아웃 */
+        .wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding: 5vw; /* 화면 크기에 비례하는 안쪽 여백 */
+        }
 
-/* Header */
-.head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-}
-.head > div { min-width: 0; }
-h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 1.1;
-  text-wrap: balance;
-}
-.lede {
-  margin: 8px 0 0;
-  color: var(--muted);
-  text-wrap: pretty;
-}
-.best { text-align: right; flex: none; }
-.best .k { display: block; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
-.best .v { display: block; font: 600 22px/1.3 var(--font-mono); font-variant-numeric: tabular-nums; }
+        /* 유연한 반응형 컨테이너 */
+        .game-container {
+            background-color: white;
+            padding: 6vh 4vw; /* 높이와 너비에 비례한 유연한 여백 */
+            border-radius: 20px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            width: 100%;
+            max-width: 420px; /* PC/태블릿에서 지나치게 커지는 것 방지 */
+            min-width: 280px; /* 아주 작은 화면에서 깨지는 것 방지 */
+            transition: all 0.3s ease;
+        }
 
-/* Scoreboard readout */
-.readout {
-  --v: var(--panel-muted);
-  background: var(--panel);
-  color: var(--panel-ink);
-  border: 1px solid var(--panel-line);
-  border-radius: 12px;
-  padding: 14px 18px 18px;
-  display: grid;
-  gap: 4px;
-}
-.readout[data-state="up"] { --v: var(--p-up); }
-.readout[data-state="down"] { --v: var(--p-down); }
-.readout[data-state="win"] { --v: var(--p-win); }
-.readout[data-state="lose"] { --v: var(--panel-muted); }
-.r-top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  letter-spacing: .06em;
-  color: var(--panel-muted);
-}
-.r-top span:last-child { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.r-main { display: flex; align-items: baseline; gap: 16px; }
-.r-num {
-  font-family: var(--font-display);
-  font-size: 76px;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-.readout[data-state="win"] .r-num { color: var(--p-win); }
-.r-verdict {
-  font-family: var(--font-display);
-  font-size: 34px;
-  line-height: 1.1;
-  color: var(--v);
-}
-.r-msg { margin: 0; min-height: 3em; color: var(--panel-ink); text-wrap: pretty; }
-.pop { animation: pop .18s ease-out; }
-@keyframes pop {
-  from { transform: translateY(5px); opacity: .35; }
-  to { transform: none; opacity: 1; }
-}
+        /* 반응형 타이포그래피 (clamp 활용) */
+        h1 {
+            color: #212529;
+            /* 최소 1.4rem, 기본 4vw, 최대 2rem 사이에서 자동 조절 */
+            font-size: clamp(1.4rem, 4vw, 2rem); 
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
 
-/* Range bar */
-.range-text {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 4px 12px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.range-text b { color: var(--ink); font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
-.bar { position: relative; height: 36px; margin: 6px 4px 0; }
-.track, .seg {
-  position: absolute;
-  top: 50%;
-  height: 12px;
-  transform: translateY(-50%);
-  border-radius: 3px;
-}
-.track { left: 0; right: 0; background: var(--line); }
-.seg { background: var(--ink); min-width: 8px; transition: left .25s ease, width .25s ease; }
-.tick {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  width: 3px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-}
-.tick.up { background: var(--up); }
-.tick.down { background: var(--down); }
-.tick.win { background: var(--win); }
-.scale {
-  display: flex;
-  justify-content: space-between;
-  margin: 0 2px;
-  font: 500 12px var(--font-mono);
-  color: var(--muted);
-}
+        p {
+            color: #495057;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            margin-bottom: 8%;
+        }
 
-/* Input */
-.guess { display: grid; gap: 8px; }
-label { font-size: 13px; font-weight: 500; color: var(--muted); }
-.row { display: flex; gap: 10px; }
-input {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 52px;
-  padding: 0 14px;
-  font: 600 24px/1 var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-}
-input::placeholder { color: var(--muted); opacity: .6; }
-input:disabled { opacity: .5; }
-.btn {
-  flex: none;
-  height: 52px;
-  padding: 0 24px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--btn);
-  color: var(--btn-ink);
-  font: 600 16px var(--font-body);
-  cursor: pointer;
-}
-.btn:active { transform: translateY(1px); }
-:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-.err { margin: 0; min-height: 1.4em; font-size: 13px; color: var(--up); }
-.aux { display: flex; flex-wrap: wrap; gap: 4px 18px; }
-.link {
-  padding: 6px 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: 500 14px var(--font-body);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
 
-/* Try slots */
-.tries-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2px 12px;
-  margin: 0 0 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.tries-head h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--ink); }
-.chips {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
-}
-.chip {
-  min-width: 0;
-  min-height: 64px;
-  padding: 6px 2px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-}
-.chip .n { font: 600 18px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
-.chip .v { font-size: 11px; font-weight: 600; white-space: nowrap; }
-.chip.up .v { color: var(--up); }
-.chip.down .v { color: var(--down); }
-.chip.empty { background: transparent; border-style: dashed; color: var(--muted); }
-.chip.win { background: var(--win); border-color: var(--win); color: var(--win-ink); }
-.chip.win .v { color: var(--win-ink); }
+        input[type="number"] {
+            width: 100%;
+            height: clamp(48px, 12vh, 58px); /* 화면 높이에 따라 유연한 폼 크기 */
+            font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+            text-align: center;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -webkit-appearance: none;
+        }
 
-@media (max-width: 360px) {
-  .chip .v { font-size: 10px; }
-  .r-num { font-size: 64px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pop { animation: none; }
-  .seg { transition: none; }
-}
-</style>
+        input[type="number"]:focus {
+            border-color: #339af0;
+            box-shadow: 0 0 0 3px rgba(51, 154, 240, 0.2);
+        }
 
-<main class="app">
-  <header class="head">
-    <div>
-      <h1>숫자 맞히기</h1>
-      <p class="lede">1부터 100 사이에서 수 하나를 정했어요. 업·다운 힌트를 따라 7번 안에 맞혀 보세요.</p>
+        button {
+            width: 100%;
+            height: clamp(48px, 12vh, 58px);
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            font-weight: bold;
+            background-color: #339af0;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            background-color: #1c7ed6;
+            transform: scale(0.98);
+        }
+
+        .result-message {
+            margin: 6% 0 3% 0;
+            font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+            font-weight: bold;
+            min-height: 35px;
+        }
+
+        .attempts {
+            margin: 0;
+            font-size: clamp(0.85rem, 2vw, 1rem);
+            color: #868e96;
+        }
+
+        .restart-btn {
+            background-color: #51cf66;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .restart-btn:active {
+            background-color: #37b24d;
+        }
+
+        /* 🖥️ PC 또는 가로가 긴 태블릿을 위한 미디어 쿼리 최적화 */
+        @media (min-width: 768px) {
+            .game-container {
+                padding: 40px;
+            }
+            .input-group {
+                flex-direction: row; /* 큰 화면에서는 가로 배치로 변경 */
+                gap: 10px;
+            }
+            input[type="number"] {
+                flex: 2; /* 입력창이 더 넓게 */
+            }
+            button {
+                flex: 1; /* 버튼은 적당하게 */
+            }
+            .restart-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="game-container">
+        <h1>숫자 맞히기 🎮</h1>
+        <p>1부터 100 사이의 숫자를 맞춰보세요!</p>
+        
+        <div id="input-area" class="input-group">
+            <input type="number" id="guess-input" inputmode="numeric" pattern="[0-9]*" min="1" max="100" placeholder="숫자 입력">
+            <button onclick="checkGuess()">확인</button>
+        </div>
+    
+        <p class="result-message" id="result-text"></p>
+        <p class="attempts" id="attempts-text">시도 횟수: 0회</p>
+        
+        <button class="restart-btn" id="restart-button" onclick="resetGame()">다시 시작하기</button>
     </div>
-    <div class="best">
-      <span class="k">최고 기록</span>
-      <span class="v" id="best">—</span>
-    </div>
-  </header>
-
-  <section class="readout" id="readout" data-state="idle" aria-live="polite" aria-atomic="true">
-    <div class="r-top"><span>최근 추측</span><span id="r-count">0 / 7번</span></div>
-    <div class="r-main">
-      <span class="r-num" id="r-num">?</span>
-      <span class="r-verdict" id="r-verdict"></span>
-    </div>
-    <p class="r-msg" id="r-msg"></p>
-  </section>
-
-  <section aria-label="가능한 범위">
-    <div class="range-text" id="range-text"></div>
-    <div class="bar" aria-hidden="true">
-      <div class="track"></div>
-      <div class="seg" id="seg"></div>
-      <div id="ticks"></div>
-    </div>
-    <div class="scale" aria-hidden="true"><span>1</span><span>100</span></div>
-  </section>
-
-  <form class="guess" id="form" novalidate>
-    <label for="guess">추측할 수</label>
-    <div class="row">
-      <input id="guess" type="text" inputmode="numeric" enterkeyhint="done" maxlength="3" autocomplete="off">
-      <button class="btn" id="submit" type="submit">확인</button>
-    </div>
-    <p class="err" id="err" role="alert"></p>
-  </form>
-
-  <section aria-label="추측 기록">
-    <div class="tries-head">
-      <h2>추측 기록</h2>
-      <span>중간값만 고르면 최대 7번에 반드시 맞혀요</span>
-    </div>
-    <ol class="chips" id="chips"></ol>
-  </section>
-</main>
+</div>
 
 <script>
-(function () {
-  var MAX_TRIES = 7;
-  var LABEL = { up: '업 ↑', down: '다운 ↓', win: '정답' };
-  var $ = function (id) { return document.getElementById(id); };
-  var els = {
-    readout: $('readout'), count: $('r-count'), num: $('r-num'), verdict: $('r-verdict'), msg: $('r-msg'),
-    rangeText: $('range-text'), seg: $('seg'), ticks: $('ticks'), chips: $('chips'),
-    form: $('form'), input: $('guess'), submit: $('submit'), err: $('err'), best: $('best')
-  };
-  var state = null;
-  var best = null;
+    document.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    }, { passive: false });
 
-  function loadBest() {
-    try {
-      var v = parseInt(localStorage.getItem('updown-best'), 10);
-      return v > 0 ? v : null;
-    } catch (e) { return null; }
-  }
-  function saveBest(n) {
-    try { localStorage.setItem('updown-best', String(n)); } catch (e) {}
-  }
+    let targetNumber = Math.floor(Math.random() * 100) + 1;
+    let attempts = 0;
 
-  function newState() {
-    return { secret: 1 + Math.floor(Math.random() * 100), lo: 1, hi: 100, guesses: [], over: false, won: false, newBest: false };
-  }
+    const guessInput = document.getElementById('guess-input');
+    const resultText = document.getElementById('result-text');
+    const attemptsText = document.getElementById('attempts-text');
+    const restartButton = document.getElementById('restart-button');
+    const inputArea = document.getElementById('input-area');
 
-  function showError(text) { els.err.textContent = text; }
+    guessInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkGuess();
+            guessInput.blur(); 
+        }
+    });
 
-  function pop() {
-    els.num.classList.remove('pop');
-    void els.num.offsetWidth;
-    els.num.classList.add('pop');
-  }
+    function checkGuess() {
+        const userGuess = parseInt(guessInput.value);
 
-  function render() {
-    var s = state;
-    var n = s.guesses.length;
-    var last = n ? s.guesses[n - 1] : null;
-    var mode = !last ? 'idle' : s.won ? 'win' : s.over ? 'lose' : last.v;
-    var count = s.hi - s.lo + 1;
+        if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+            resultText.style.color = '#fa5252';
+            resultText.textContent = '1~100 사이 숫자를 입력하세요!';
+            return;
+        }
 
-    els.readout.setAttribute('data-state', mode);
-    els.count.textContent = n + ' / ' + MAX_TRIES + '번';
+        attempts++;
+        attemptsText.textContent = `시도 횟수: ${attempts}회`;
 
-    if (mode === 'idle') {
-      els.num.textContent = '?';
-      els.verdict.textContent = '';
-      els.msg.textContent = '1부터 100 사이의 수를 정했어요. 첫 추측을 입력해 보세요.';
-    } else if (mode === 'win') {
-      els.num.textContent = last.n;
-      els.verdict.textContent = '정답';
-      els.msg.textContent = n + '번 만에 맞혔어요.' + (s.newBest ? ' 최고 기록이에요.' : '');
-    } else if (mode === 'lose') {
-      els.num.textContent = s.secret;
-      els.verdict.textContent = '실패';
-      els.msg.textContent = MAX_TRIES + '번을 모두 썼어요. 정답은 ' + s.secret + '입니다.';
-    } else {
-      els.num.textContent = last.n;
-      els.verdict.textContent = LABEL[mode];
-      els.msg.textContent = '정답은 ' + last.n + '보다 ' + (mode === 'up' ? '커요' : '작아요') + '. ' +
-        (count === 1 ? '남은 후보는 ' + s.lo + ' 하나뿐이에요.' : '이제 ' + s.lo + '~' + s.hi + ' 사이예요.');
+        if (userGuess === targetNumber) {
+            resultText.style.color = '#40c057';
+            resultText.textContent = `정답입니다! 🎉 (${attempts}회)`;
+            endGame();
+        } else if (userGuess < targetNumber) {
+            resultText.style.color = '#15aabf';
+            resultText.textContent = 'UP ⬆️ (더 높은 숫자)';
+        } else {
+            resultText.style.color = '#15aabf';
+            resultText.textContent = 'DOWN ⬇️ (더 낮은 숫자)';
+        }
+
+        guessInput.value = '';
     }
 
-    els.rangeText.innerHTML = '<span>가능한 범위 <b>' + s.lo + ' – ' + s.hi + '</b></span><span>후보 <b>' + count + '</b>개</span>';
-    els.seg.style.left = (s.lo - 1) + '%';
-    els.seg.style.width = count + '%';
-    els.ticks.innerHTML = s.guesses.map(function (g) {
-      return '<i class="tick ' + g.v + '" style="left:' + (g.n - 0.5) + '%"></i>';
-    }).join('');
-
-    var chips = '';
-    for (var i = 0; i < MAX_TRIES; i++) {
-      var g = s.guesses[i];
-      if (g) {
-        chips += '<li class="chip ' + g.v + '"><span class="n">' + g.n + '</span><span class="v">' + LABEL[g.v] + '</span></li>';
-      } else {
-        chips += '<li class="chip empty" aria-label="남은 기회"><span class="n">·</span><span class="v">&nbsp;</span></li>';
-      }
-    }
-    els.chips.innerHTML = chips;
-
-    els.best.textContent = best ? best + '번' : '—';
-    els.input.disabled = s.over;
-    els.submit.textContent = s.over ? '한 판 더' : '확인';
-  }
-
-  function startGame(focus) {
-    state = newState();
-    els.input.value = '';
-    showError('');
-    render();
-    if (focus) els.input.focus();
-  }
-
-  els.input.addEventListener('input', function () {
-    els.input.value = els.input.value.replace(/\D/g, '').slice(0, 3);
-    showError('');
-  });
-
-  els.form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (state.over) { startGame(true); return; }
-
-    var raw = els.input.value.trim();
-    var n = parseInt(raw, 10);
-    if (!/^\d{1,3}$/.test(raw) || n < 1 || n > 100) {
-      showError('1부터 100 사이의 정수를 입력해 주세요.');
-      return;
-    }
-    if (n < state.lo || n > state.hi) {
-      showError('그 수는 이미 후보에서 빠졌어요. ' + state.lo + '~' + state.hi + ' 사이에서 골라 보세요.');
-      return;
-    }
-    showError('');
-
-    var v = n === state.secret ? 'win' : n < state.secret ? 'up' : 'down';
-    state.guesses.push({ n: n, v: v });
-
-    if (v === 'win') {
-      state.won = true;
-      state.over = true;
-      state.lo = state.hi = n;
-      if (!best || state.guesses.length < best) {
-        best = state.guesses.length;
-        state.newBest = true;
-        saveBest(best);
-      }
-    } else {
-      if (v === 'up') state.lo = n + 1; else state.hi = n - 1;
-      if (state.guesses.length >= MAX_TRIES) state.over = true;
+    function endGame() {
+        inputArea.style.display = 'none';
+        restartButton.style.display = 'block';
     }
 
-    els.input.value = '';
-    render();
-    pop();
-    if (state.over) els.submit.focus(); else els.input.focus();
-  });
-
-  function boot(saved) {
-    best = loadBest();
-    state = saved && saved.state ? saved.state : newState();
-    render();
-  }
-
-  var hot = window.claude && window.claude.hot;
-  try {
-    if (hot && hot.snapshot) hot.snapshot(function () { return { state: state }; });
-  } catch (e) {}
-  if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
-})();
+    function resetGame() {
+        targetNumber = Math.floor(Math.random() * 100) + 1;
+        attempts = 0;
+        
+        resultText.textContent = '';
+        attemptsText.textContent = '시도 횟수: 0회';
+        guessInput.value = '';
+        
+        // 반응형 레이아웃 복구를 위해 display 설정 최적화
+        inputArea.style.display = window.innerWidth >= 768 ? 'flex' : 'flex'; 
+        restartButton.style.display = 'none';
+    }
 </script>
 
-</body></html>
+</body>
+</html>
